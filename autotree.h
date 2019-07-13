@@ -3,6 +3,7 @@
 
 #include <utility>
 #include <map>
+#include "keystack.h"
 
 namespace AutoTree
 {
@@ -38,7 +39,9 @@ public:
 
 private:
 
-    std::pair<const Key,Tp> mSelf;
+    void insert (KeyStack<Key>& stack, const Tp& val);
+
+    std::pair<Key,Tp> mSelf;
     std::map<Key, Node<Key,Tp,Parent,Compare,Equ> > mChildren;
 
 }; // class Node
