@@ -1,18 +1,27 @@
 #ifndef _AUTOTREE_H_
 #define _AUTOTREE_H_
 
+#include <utility>
 #include <map>
 
 namespace AutoTree
 {
 
-template<typename Key,
-         typename Tp,
-         typename Equ = AutoTree::equal<Key>,
-         typename Compare = std::less<Key>,
-         typename Parent,
-         typename Alloc = std::allocator<pair<const Key, T> >,
-         > class Node
+template <typename Key>
+struct equal
+{
+    constexpr bool operator() (const Key& lhs, const Key& rhs) {
+        return (lhs == rhs);
+    }
+};
+
+template <typename Key,
+          typename Tp,
+          typename Parent,
+          typename Compare = std::less<Key>,
+          typename Equ = equal<Key>,
+          typename Alloc = std::allocator<std::pair<const Key, Tp> >
+          > class Node
 {
 public:
 
@@ -28,18 +37,18 @@ public:
 private:
 
     std::pair<const Key,Tp> mSelf;
-    std::map<Key, Node<Key,Tp,Equ,Compare,Parent,Alloc>, Compare, Alloc >
+    std::map<Key, Node<Key,Tp,Parent,Compare,Equ,Alloc>, Compare, Alloc >
         mChildren;
 
 };
 
-template<typename Key,
-         typename Tp,
-         typename Equ = AutoTree::equal<Key>,
-         typename Compare = std::less<Key>,
-         typename Parent,
-         typename Alloc = std::allocator<pair<const Key, T> >,
-         > class Tree
+template <typename Key,
+          typename Tp,
+          typename Parent,
+          typename Compare = std::less<Key>,
+          typename Equ = equal<Key>,
+          typename Alloc = std::allocator<std::pair<const Key, Tp> >
+          > class Tree
 {
 public:
 
@@ -55,11 +64,11 @@ public:
 private:
 
     Key mBase;
-    std::map<Key, Node<Key,Tp,Equ,Compare,Parent,Alloc>, Compare, Alloc >
+    std::map<Key, Node<Key,Tp,Parent,Compare,Equ,Alloc>, Compare, Alloc >
         mChildren;
 
 };
 
-}; // namespace AutoTree
+} // namespace AutoTree
 
 #endif // _AUTOTREE_H_
