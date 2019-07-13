@@ -19,13 +19,12 @@ template <typename Key,
           typename Tp,
           typename Parent,
           typename Compare = std::less<Key>,
-          typename Equ = equal<Key>,
-          typename Alloc = std::allocator<std::pair<const Key, Tp> >
-          > class Node
+          typename Equ = equal<Key> >
+class Node
 {
 public:
 
-    Node();
+    Node() = default;
     Node(Node const& other) = delete;
     Node& operator=(Node const& other) = delete;   
     Node(Node&& other) = default;
@@ -34,40 +33,15 @@ public:
 
     Node (const Key& key, const Tp& tp);
 
+    // TODO: provide useful return value
+    void insert (const Key& key, const Tp& val);
+
 private:
 
     std::pair<const Key,Tp> mSelf;
-    std::map<Key, Node<Key,Tp,Parent,Compare,Equ,Alloc>, Compare, Alloc >
-        mChildren;
+    std::map<Key, Node<Key,Tp,Parent,Compare,Equ> > mChildren;
 
-};
-
-template <typename Key,
-          typename Tp,
-          typename Parent,
-          typename Compare = std::less<Key>,
-          typename Equ = equal<Key>,
-          typename Alloc = std::allocator<std::pair<const Key, Tp> >
-          > class Tree
-{
-public:
-
-    Tree();
-    Tree(Tree const& other) = delete;
-    Tree& operator=(Tree const& other) = delete;   
-    Tree(Tree&& other) = default;
-    Tree& operator=(Tree&& other) = default;   
-    ~Tree() = default;
-
-    Tree (const Key& base);
-
-private:
-
-    Key mBase;
-    std::map<Key, Node<Key,Tp,Parent,Compare,Equ,Alloc>, Compare, Alloc >
-        mChildren;
-
-};
+}; // class Node
 
 } // namespace AutoTree
 
