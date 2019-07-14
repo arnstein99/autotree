@@ -32,21 +32,48 @@ public:
     Node& operator=(Node&& other);
     ~Node() = default;
 
-    Node (const Key& key, const Tp& tp);
+    Node (const Tp& tp);
+
+protected:
+
+    void insert (std::list<Key>& klist, const Tp& val);
+
+private:
+
+    Tp mVal;
+    std::map<Key, Node<Key,Tp,Parent,Compare,Equ> > mChildren;
+
+}; // class Node
+
+template <typename Key,
+          typename Tp,
+          typename Parent,
+          typename Compare = std::less<Key>,
+          typename Equ = equal<Key> >
+class Tree : public Node<Key,Tp,Parent,Compare,Equ>
+{
+public:
+
+    Tree() = default;
+    Tree(Tree const& other) = delete;
+    Tree& operator=(Tree const& other) = delete;   
+    Tree(Tree&& other);
+    Tree& operator=(Tree&& other);
+    ~Tree() = default;
+
+    Tree (const Key& base);
 
     // TODO: provide useful return value
     void insert (const Key& key, const Tp& val);
 
 private:
 
-    bool expand (const Key& key, std::list<Key>& klist);
-    void insert (std::list<Key>& klist, const Tp& val);
-    std::list<Key> expand (const Key& key);
+    bool expand (
+        const Key& base_key, const Key& new_key, std::list<Key>& klist);
 
-    std::pair<Key,Tp> mSelf;
-    std::map<Key, Node<Key,Tp,Parent,Compare,Equ> > mChildren;
+    Key mBase;
 
-}; // class Node
+}; // class Tree
 
 } // namespace AutoTree
 
