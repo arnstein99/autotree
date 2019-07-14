@@ -48,21 +48,11 @@ template <typename Key,
 void Node<Key,Tp,Parent,Compare,Equ>::insert (const Key& key, const Tp& val)
 {
     // Construct list with new key at the beginning and
-    // a direct child of self-key at the end.
-    Key keyCopy (key);
-    Equ eq;
-    Parent par;
+    // a direct child of self-key at the end...
     std::list<Key> klist;
-    while (!eq (keyCopy, Key{}))
-    {
-	klist.push_back (keyCopy);
-	keyCopy = par(keyCopy);
-	if (eq (keyCopy, mSelf.first)) break;
-    }
-
-    // This if-test handles the case where the input key does not belong in this
-    // tree.
-    if (eq (keyCopy, Key{})) return;
+    if (!expand (key, klist)) return;
+    // ...that if-test handles the case where the input key does not belong in
+    // this tree.
     
     // Begin recursion
     insert (klist, val);
@@ -95,6 +85,30 @@ void Node<Key,Tp,Parent,Compare,Equ>::insert (
 	// Iterator may point to candidate, or to existing child in map.
 	iter->second.insert (klist, val);
     }
+}
+
+template <typename Key,
+          typename Tp,
+          typename Parent,
+          typename Compare,
+          typename Equ>
+bool
+Node<Key,Tp,Parent,Compare,Equ>::expand (const Key& key, std::list<Key>& klist)
+{
+    // Construct list with new key at the beginning and
+    // a direct child of self-key at the end.
+    //
+    // A return value of true means success.
+    Key keyCopy (key);
+    Parent par;
+    Equ eq;
+    while (!eq (keyCopy, Key{}))
+    {
+	klist.push_back (keyCopy);
+	keyCopy = par(keyCopy);
+	if (eq (keyCopy, mSelf.first)) break;
+    }
+    return !(eq (keyCopy, Key{}));
 }
 
 } // namespace AutoTree

@@ -31,7 +31,8 @@ int main (int, char* [])
 {
     FileNode fn ("/a", 41);
     fn.insert ("/a/b/c/d", 42);
-    fn.insert ("/a/b/cc", 43);
+    fn.insert ("/a/b/xx", 43);
+    fn.insert ("/a/b/cc", 44);
     return 0;
 }
 

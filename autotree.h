@@ -39,7 +39,9 @@ public:
 
 private:
 
+    bool expand (const Key& key, std::list<Key>& klist);
     void insert (std::list<Key>& klist, const Tp& val);
+    std::list<Key> expand (const Key& key);
 
     std::pair<Key,Tp> mSelf;
     std::map<Key, Node<Key,Tp,Parent,Compare,Equ> > mChildren;
