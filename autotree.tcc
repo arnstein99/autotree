@@ -8,6 +8,33 @@ template <typename Key,
           typename Parent,
           typename Compare,
           typename Equ>
+Node<Key,Tp,Parent,Compare,Equ>::Node (
+    Node<Key,Tp,Parent,Compare,Equ>&& other)
+ : mSelf(std::move(other.mSelf)), mChildren(std::move(other.mChildren))
+{
+}
+
+template <typename Key,
+          typename Tp,
+          typename Parent,
+          typename Compare,
+          typename Equ>
+Node<Key,Tp,Parent,Compare,Equ>& Node<Key,Tp,Parent,Compare,Equ>::operator= (
+    Node<Key,Tp,Parent,Compare,Equ>&& other)
+{
+    if (&other != this)
+    {
+        mSelf = std::move(other.mSelf);
+	mChildren = std::move(other.mChildren);
+    }
+    return *this;
+}
+
+template <typename Key,
+          typename Tp,
+          typename Parent,
+          typename Compare,
+          typename Equ>
 Node<Key,Tp,Parent,Compare,Equ>::Node(const Key& key, const Tp& val)
 : mSelf(std::make_pair(key, val)), mChildren()
 {
@@ -20,18 +47,25 @@ template <typename Key,
           typename Equ>
 void Node<Key,Tp,Parent,Compare,Equ>::insert (const Key& key, const Tp& val)
 {
+    // Construct list with new key at the beginning and
+    // a direct child of self-key at the end.
     Key keyCopy (key);
     Equ eq;
     Parent par;
-    KeyStack<Key> stack;
-    while (keyCopy != Key{})
+    std::list<Key> klist;
+    while (!eq (keyCopy, Key{}))
     {
-	if (eq (keyCopy, mSelf.first)) break;
-	stack.push (keyCopy);
+	klist.push_back (keyCopy);
 	keyCopy = par(keyCopy);
+	if (eq (keyCopy, mSelf.first)) break;
     }
 
-    if (eq (keyCopy, mSelf.first)) insert (stack, val);
+    // This if-test handles the case where the input key does not belong in this
+    // tree.
+    if (eq (keyCopy, Key{})) return;
+    
+    // Begin recursion
+    insert (klist, val);
 }
 
 template <typename Key,
@@ -40,21 +74,26 @@ template <typename Key,
           typename Compare,
           typename Equ>
 void Node<Key,Tp,Parent,Compare,Equ>::insert (
-    KeyStack<Key>& stack, const Tp& val)
+    std::list<Key>& klist, const Tp& val)
 {
-    Key key = stack.pop();
-    Equ eq;
-    std::pair<Key,Tp> pr (std::make_pair (key, val));
-    if (eq (key, Key{}))
+    // Precondition: a direct child-key is at end of klist.
+    Key child_key = klist.back();
+    klist.pop_back();
+    if (klist.empty())  // end of recursion
     {
-        // mSelf = pr;
-	mSelf.first = pr.first;
-	mSelf.second = pr.second;
+        mSelf.second = val;
     }
-    else
+    else // continue recursion
     {
-	auto child_iter = mChildren.insert(pr).first;
-	child_iter->insert (stack, val);
+	// Insert new member into map of children, or point to existing child
+	Key grand_child_key (klist.back());
+	Node<Key,Tp,Parent,Compare,Equ> candidate (grand_child_key, Tp{});
+	std::pair<Key, Node<Key,Tp,Parent,Compare,Equ> > pr;
+	pr.first = child_key;
+	pr.second = std::move(candidate);
+	auto iter = mChildren.insert (std::move(pr)).first; // map iterator
+	// Iterator may point to candidate, or to existing child in map.
+	iter->second.insert (klist, val);
     }
 }
 

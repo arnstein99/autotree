@@ -10,9 +10,16 @@ struct Parent
     {
 	string retval{};
         auto pos = str.find_last_of('/');
-	if (pos != string::npos)
+	switch (pos)
 	{
-	    retval = str.substr(0, pos-1);
+	case 0:
+	    retval = '/';
+	    break;
+	case string::npos:
+	    break;
+	default:
+	    retval = str.substr(0, pos);
+	    break;
 	}
 	return retval;
     }
@@ -20,11 +27,11 @@ struct Parent
 
 typedef Node<string, int, Parent> FileNode;
 
-FileNode fn ("/", 41);
-
 int main (int, char* [])
 {
-    fn.insert ("a/b/c/d", 42);
+    FileNode fn ("/a", 41);
+    fn.insert ("/a/b/c/d", 42);
+    fn.insert ("/a/b/cc", 43);
     return 0;
 }
 

@@ -2,8 +2,8 @@
 #define _AUTOTREE_H_
 
 #include <utility>
+#include <list>
 #include <map>
-#include "keystack.h"
 
 namespace AutoTree
 {
@@ -28,8 +28,8 @@ public:
     Node() = default;
     Node(Node const& other) = delete;
     Node& operator=(Node const& other) = delete;   
-    Node(Node&& other) = default;
-    Node& operator=(Node&& other) = default;   
+    Node(Node&& other);
+    Node& operator=(Node&& other);
     ~Node() = default;
 
     Node (const Key& key, const Tp& tp);
@@ -39,7 +39,7 @@ public:
 
 private:
 
-    void insert (KeyStack<Key>& stack, const Tp& val);
+    void insert (std::list<Key>& klist, const Tp& val);
 
     std::pair<Key,Tp> mSelf;
     std::map<Key, Node<Key,Tp,Parent,Compare,Equ> > mChildren;
