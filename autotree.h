@@ -4,6 +4,7 @@
 #include <utility>
 #include <list>
 #include <map>
+#include "autotree_stack.h"
 
 namespace AutoTree
 {
@@ -41,7 +42,9 @@ protected:
 private:
 
     Tp mVal;
-    std::map<Key, Node<Key,Tp,Parent,Compare,Equ> > mChildren;
+    Node* mParent;
+    using MapType = std::map<Key, Node<Key,Tp,Parent,Compare,Equ> >;
+    MapType mChildren;
 
 }; // class Node
 
@@ -66,10 +69,10 @@ public:
     // TODO: provide useful return value
     void insert (const Key& key, const Tp& val);
 
-    typedef std::pair<const Key, Tp> value_type;
-    class depth_first_iterator;
-    depth_first_iterator start();
-    depth_first_iterator end();
+    // Note that this differs from the standard C++ library
+    typedef std::pair<const Key&, Tp&> value_type;
+
+    class iterator;
 
 private:
 
@@ -85,23 +88,33 @@ template <typename Key,
           typename Parent,
           typename Compare,
           typename Equ>
-class Tree<Key,Tp,Parent,Compare,Equ>::depth_first_iterator
+class Tree<Key,Tp,Parent,Compare,Equ>::iterator
 {
 public:
 
-    depth_first_iterator();
-    depth_first_iterator(depth_first_iterator const& other);
-    depth_first_iterator& operator=(depth_first_iterator const& other);
-    depth_first_iterator(depth_first_iterator&& other);
-    depth_first_iterator& operator=(depth_first_iterator&& other);
-    ~depth_first_iterator();
+    iterator();
+    iterator(iterator const& other) = delete;
+    iterator& operator=(iterator const& other) = delete;
+    iterator(iterator&& other);
+    iterator& operator=(iterator&& other);
+    ~iterator() = default;
 
-    depth_first_iterator next() const;
-    depth_first_iterator& operator++();
-    depth_first_iterator& operator++(int);
+    // These are in-place operations that return self.
+    iterator& go_start();
+    iterator& go_level_start();
+    iterator& go_prev();
+    iterator& go_next();
+    iterator& go_up();
+    iterator& go_down();
+
     value_type operator->();
 
-}; // class Tree::depth_first_iterator
+private:
+
+    using MapType = std::map<Key, Node<Key,Tp,Parent,Compare,Equ> >;
+    Stack<MapType> mMapIterStack;
+
+}; // class Tree::iterator
 
 } // namespace AutoTree
 

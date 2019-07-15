@@ -15,7 +15,8 @@ template <typename Key,
           typename Equ>
 Node<Key,Tp,Parent,Compare,Equ>::Node (
     Node<Key,Tp,Parent,Compare,Equ>&& other)
- : mVal(std::move(other.mVal)), mChildren(std::move(other.mChildren))
+ : mVal(std::move(other.mVal)), mParent(nullptr),
+   mChildren(std::move(other.mChildren))
 {
 }
 
@@ -30,6 +31,7 @@ Node<Key,Tp,Parent,Compare,Equ>& Node<Key,Tp,Parent,Compare,Equ>::operator= (
     if (&other != this)
     {
         mVal = std::move(other.mVal);
+	mParent = nullptr;
 	mChildren = std::move(other.mChildren);
     }
     return *this;
@@ -41,7 +43,7 @@ template <typename Key,
           typename Compare,
           typename Equ>
 Node<Key,Tp,Parent,Compare,Equ>::Node(const Tp& val)
-: mVal(val), mChildren()
+: mVal(val), mParent(nullptr), mChildren()
 {
 }
 
@@ -70,6 +72,7 @@ void Node<Key,Tp,Parent,Compare,Equ>::insert (
 	pr.second = std::move(candidate);
 	auto iter = mChildren.insert (std::move(pr)).first; // map iterator
 	// Iterator may point to candidate, or to existing child in map.
+	iter->second.mParent = this;
 	iter->second.insert (klist, val);
     }
 }
@@ -157,6 +160,43 @@ Tree<Key,Tp,Parent,Compare,Equ>::expand (
 	if (eq (keyCopy, base_key)) break;
     }
     return !(eq (keyCopy, Key{}));
+}
+
+////////////////////////////
+// Tree::iterator methods //
+////////////////////////////
+
+template <typename Key,
+          typename Tp,
+          typename Parent,
+          typename Compare,
+          typename Equ>
+Tree<Key,Tp,Parent,Compare,Equ>::iterator::iterator()
+ : mMapIterStack()
+{
+}
+
+template <typename Key,
+          typename Tp,
+          typename Parent,
+          typename Compare,
+          typename Equ>
+Tree<Key,Tp,Parent,Compare,Equ>::iterator::iterator(iterator&& other)
+ : mMapIterStack(std::move(other.mMapIterStack))
+{
+}
+
+template <typename Key,
+          typename Tp,
+          typename Parent,
+          typename Compare,
+          typename Equ>
+typename Tree<Key,Tp,Parent,Compare,Equ>::iterator&
+Tree<Key,Tp,Parent,Compare,Equ>::iterator::operator= (
+    Tree<Key,Tp,Parent,Compare,Equ>::iterator&& other)
+{
+    if (&other != *this)  mMapIterStack = std::move(other.mMapIterStack);
+    return *this;
 }
 
 } // namespace AutoTree
