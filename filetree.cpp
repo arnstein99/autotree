@@ -25,14 +25,21 @@ struct Parent
     }
 };
 
-typedef Tree<string, int, Parent> FileTree;
+struct Payload
+{
+    Payload() : value(0) { }
+    Payload(int v) : value(v) { }
+    int value;
+};
+
+typedef Tree<string, Payload, Parent> FileTree;
 
 int main (int, char* [])
 {
     FileTree ft ("/a");
-    ft.insert ("/a/b/c/d", 42);
-    ft.insert ("/a/b/xx", 43);
-    ft.insert ("/a/b/cc", 44);
+    ft.insert ("/a/b/c/d", {42});
+    ft.insert ("/a/b/xx", {43});
+    ft.insert ("/a/b/cc", {44});
     return 0;
 }
 

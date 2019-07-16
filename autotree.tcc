@@ -15,7 +15,7 @@ template <typename Key,
           typename Equ>
 Node<Key,Tp,Parent,Compare,Equ>::Node (
     Node<Key,Tp,Parent,Compare,Equ>&& other)
- : mVal(std::move(other.mVal)), mParent(nullptr),
+ : Tp(std::move(other)), mParent(nullptr),
    mChildren(std::move(other.mChildren))
 {
 }
@@ -30,7 +30,7 @@ Node<Key,Tp,Parent,Compare,Equ>& Node<Key,Tp,Parent,Compare,Equ>::operator= (
 {
     if (&other != this)
     {
-        mVal = std::move(other.mVal);
+        Tp(std::move(other));
 	mParent = nullptr;
 	mChildren = std::move(other.mChildren);
     }
@@ -43,7 +43,7 @@ template <typename Key,
           typename Compare,
           typename Equ>
 Node<Key,Tp,Parent,Compare,Equ>::Node(const Tp& val)
-: mVal(val), mParent(nullptr), mChildren()
+: Tp(val), mParent(nullptr), mChildren()
 {
 }
 
@@ -58,7 +58,7 @@ void Node<Key,Tp,Parent,Compare,Equ>::insert (
     // Precondition: a direct child-key is at end of klist.
     if (klist.empty())  // end of recursion
     {
-        mVal = val;
+        Tp::operator=(val);
     }
     else // continue recursion
     {
@@ -172,7 +172,7 @@ template <typename Key,
           typename Compare,
           typename Equ>
 Tree<Key,Tp,Parent,Compare,Equ>::iterator::iterator()
- : mMapIterStack()
+ : mMapIterStack(), mBelowBottom(false)
 {
 }
 
@@ -181,9 +181,40 @@ template <typename Key,
           typename Parent,
           typename Compare,
           typename Equ>
-Tree<Key,Tp,Parent,Compare,Equ>::iterator::iterator(iterator&& other)
- : mMapIterStack(std::move(other.mMapIterStack))
+Tree<Key,Tp,Parent,Compare,Equ>::iterator::~iterator()
 {
+    auto iter = mMapIterStack.begin();
+    while (iter != mMapIterStack.end())
+    {
+        delete *iter;
+        mMapIterStack.pop_front();
+    }
+}
+
+template <typename Key,
+          typename Tp,
+          typename Parent,
+          typename Compare,
+          typename Equ>
+Tree<Key,Tp,Parent,Compare,Equ>::iterator::iterator(iterator&& other)
+ : mMapIterStack(std::move(other.mMapIterStack)),
+   mBelowBottom(other.mBelowBottom)
+{
+}
+
+template <typename Key,
+          typename Tp,
+          typename Parent,
+          typename Compare,
+          typename Equ>
+Tree<Key,Tp,Parent,Compare,Equ>::iterator::iterator(const iterator& other)
+ : mMapIterStack(), mBelowBottom(other.mBelowBottom)
+{
+    for (auto mit : other.mMapIterStack)
+    {
+        auto new_mit = new typename MapType::iterator (mit);
+        mMapIterStack.push_front (mit);
+    }
 }
 
 template <typename Key,
@@ -195,7 +226,33 @@ typename Tree<Key,Tp,Parent,Compare,Equ>::iterator&
 Tree<Key,Tp,Parent,Compare,Equ>::iterator::operator= (
     Tree<Key,Tp,Parent,Compare,Equ>::iterator&& other)
 {
-    if (&other != *this)  mMapIterStack = std::move(other.mMapIterStack);
+    if (&other != *this)
+    {
+        mMapIterStack = std::move(other.mMapIterStack);
+        mBelowBottom = other.mBelowBottom;
+    }
+    return *this;
+}
+
+template <typename Key,
+          typename Tp,
+          typename Parent,
+          typename Compare,
+          typename Equ>
+typename Tree<Key,Tp,Parent,Compare,Equ>::iterator&
+Tree<Key,Tp,Parent,Compare,Equ>::iterator::operator= (
+    const Tree<Key,Tp,Parent,Compare,Equ>::iterator& other)
+{
+    if (&other != *this)
+    {
+        mMapIterStack = MapType{};
+        for (auto mit : other.mMapIterStack)
+        {
+            auto new_mit = new typename MapType::iterator (mit);
+            mMapIterStack.push_front (mit);
+        }
+        mBelowBottom = other.mBelowBottom;
+    }
     return *this;
 }
 

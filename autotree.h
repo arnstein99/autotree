@@ -4,7 +4,6 @@
 #include <utility>
 #include <list>
 #include <map>
-#include "autotree_stack.h"
 
 namespace AutoTree
 {
@@ -22,7 +21,7 @@ template <typename Key,
           typename Parent,
           typename Compare = std::less<Key>,
           typename Equ = equal<Key> >
-class Node
+class Node : public Tp
 {
 public:
 
@@ -41,7 +40,6 @@ protected:
 
 private:
 
-    Tp mVal;
     Node* mParent;
     using MapType = std::map<Key, Node<Key,Tp,Parent,Compare,Equ> >;
     MapType mChildren;
@@ -93,11 +91,11 @@ class Tree<Key,Tp,Parent,Compare,Equ>::iterator
 public:
 
     iterator();
-    iterator(iterator const& other) = delete;
-    iterator& operator=(iterator const& other) = delete;
+    iterator(iterator const& other);
+    iterator& operator=(iterator const& other);
     iterator(iterator&& other);
     iterator& operator=(iterator&& other);
-    ~iterator() = default;
+    ~iterator();
 
     // These are in-place operations that return self.
     iterator& go_start();
@@ -107,12 +105,16 @@ public:
     iterator& go_up();
     iterator& go_down();
 
+    bool at_level_end() const;
+    bool at_vertical_end() const;
+
     value_type operator->();
 
 private:
 
     using MapType = std::map<Key, Node<Key,Tp,Parent,Compare,Equ> >;
-    Stack<MapType> mMapIterStack;
+    std::list<iterator*>  mMapIterStack;
+    bool mBelowBottom;
 
 }; // class Tree::iterator
 
