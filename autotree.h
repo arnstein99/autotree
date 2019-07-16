@@ -98,7 +98,7 @@ public:
     ~iterator();
 
     // These are in-place operations that return self.
-    iterator& go_start();
+    iterator& go_start(const Tree<Key,Tp,Parent,Compare,Equ>& tree);
     iterator& go_level_start();
     iterator& go_prev();
     iterator& go_next();

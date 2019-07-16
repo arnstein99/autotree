@@ -256,6 +256,104 @@ Tree<Key,Tp,Parent,Compare,Equ>::iterator::operator= (
     return *this;
 }
 
+template <typename Key,
+          typename Tp,
+          typename Parent,
+          typename Compare,
+          typename Equ>
+typename Tree<Key,Tp,Parent,Compare,Equ>::iterator&
+Tree<Key,Tp,Parent,Compare,Equ>::iterator::go_start (
+    const Tree<Key,Tp,Parent,Compare,Equ>& tree)
+{
+    auto miter = new typename MapType::iterator();
+    mMapIterStack.push_front(miter);
+    *miter = tree.Children.begin();
+    return *this;
+}
+
+template <typename Key,
+          typename Tp,
+          typename Parent,
+          typename Compare,
+          typename Equ>
+typename Tree<Key,Tp,Parent,Compare,Equ>::iterator&
+Tree<Key,Tp,Parent,Compare,Equ>::iterator::go_level_start ()
+{
+    if (mMapIterStack.empty)
+    {
+        // TODO: throw an exception
+    }
+    MapType& parent_map = (*mMapIterStack[0])->second;
+    *(mMapIterStack[0]) = parent_map.begin();
+    return *this;
+}
+
+template <typename Key,
+          typename Tp,
+          typename Parent,
+          typename Compare,
+          typename Equ>
+typename Tree<Key,Tp,Parent,Compare,Equ>::iterator&
+Tree<Key,Tp,Parent,Compare,Equ>::iterator::go_prev ()
+{
+    if (mMapIterStack.empty)
+    {
+        // TODO: throw an exception
+    }
+    --(*(mMapIterStack[0]));
+    return *this;
+}
+
+template <typename Key,
+          typename Tp,
+          typename Parent,
+          typename Compare,
+          typename Equ>
+typename Tree<Key,Tp,Parent,Compare,Equ>::iterator&
+Tree<Key,Tp,Parent,Compare,Equ>::iterator::go_next ()
+{
+    if (mMapIterStack.empty)
+    {
+        // TODO: throw an exception
+    }
+    ++(*(mMapIterStack[0]));
+    return *this;
+}
+
+template <typename Key,
+          typename Tp,
+          typename Parent,
+          typename Compare,
+          typename Equ>
+typename Tree<Key,Tp,Parent,Compare,Equ>::iterator&
+Tree<Key,Tp,Parent,Compare,Equ>::iterator::go_up ()
+{
+    if (mMapIterStack.empty)
+    {
+        // TODO: throw an exception
+    }
+    mMapIterStack.pop_front();
+    return *this;
+}
+
+template <typename Key,
+          typename Tp,
+          typename Parent,
+          typename Compare,
+          typename Equ>
+typename Tree<Key,Tp,Parent,Compare,Equ>::iterator&
+Tree<Key,Tp,Parent,Compare,Equ>::iterator::go_down ()
+{
+    if (mMapIterStack.empty)
+    {
+        // TODO: throw an exception
+    }
+    auto miter = new typename MapType::iterator();
+    *miter = this->begin();
+    mMapIterStack.push_front(miter);
+    return *this;
+}
+
 } // namespace AutoTree
 
 #endif // _AUTOTREE_TCC_
