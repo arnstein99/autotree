@@ -30,11 +30,10 @@ struct TpEx : public Tp
 
     TpEx(const Tp& val) : Tp(val) { }
     TpEx(Tp&& val) : Tp(std::move(val)) { }
-    TpEx(Tp&& val) : Tp(std::move(val)) { }
     TpEx operator= (const Tp& val) { Tp::operator=(val); return *this; }
 
-    std::map< Key, TpEx<Key,Tp,Compare> > mChildren;
-    std::map< Key, TpEx<Key,Tp,Compare> >::iterator mParent;
+    typename std::map< Key, TpEx<Key,Tp,Compare> > mChildren;
+    typename std::map< Key, TpEx<Key,Tp,Compare> >::iterator mParent;
 };
 
 template < typename Key,
@@ -45,15 +44,26 @@ using MapType = typename std::map< Key, TpEx<Key,Tp,Compare> >;
 template < typename Key,
            typename Tp,
            typename Compare = std::less<Key> >
-using BasicNode = typename MapType::value_type;
+using BasicNode = typename MapType<Key,Tp,Compare>::value_type;
 
 template < typename Key,
            typename Tp,
            typename Compare = std::less<Key> >
-std::pair < BasicNode::iterator, bool>
-insert (BasicNode& parent_node, MapType::iterator& iter)
+std::pair <typename MapType<Key,Tp,Compare>::iterator, bool>
+insert (
+          BasicNode<Key,Tp,Compare>& parent_node,
+    const BasicNode<Key,Tp,Compare>& new_node)
 {
-    auto pr = node.mChildren.insert (
+    auto pr = parent_node.second.mChildren.insert (new_node);
+    // pr.first->second.mParent = pr.second;
+    typename MapType<Key,Tp,Compare>::iterator& child_iter = pr.first;
+    TpEx<Key,Tp,Compare>& valex = child_iter->second;
+    MapType<Key,Tp,Compare>& mpar = valex.mParent;
+
+    auto& parent_iter = pr.second;
+    mpar = parent_iter;
+
+    return pr;
 }
 
 } // namespace AutoTree

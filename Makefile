@@ -10,8 +10,8 @@ CXXFLAGS += \
     -Wdouble-promotion -Wshadow -Wformat=2 \
     -Wold-style-cast -Wuseless-cast
 
-PROGRAMS = filetree
-SOURCES = filetree.cpp
+PROGRAMS = filetree basic_test
+SOURCES = filetree.cpp basic_test.cpp
 LIB_OBJECTS = 
 
 Q_ = @
