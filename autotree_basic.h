@@ -48,31 +48,61 @@ class BasicNode : public MapType<Key,Tp,Compare>::value_type
 {
 public:
 
-    std::pair <typename MapType<Key,Tp,Compare>::iterator, bool>
-    insert_grandchild (const BasicNode<Key,Tp,Compare>& grandchild_node)
+    BasicNode()
+     : MapType<Key,Tp,Compare>::value_type(std::make_pair(Key{}, Tp{}))
+    { }
+
+    BasicNode(const BasicNode<Key,Tp,Compare>& other)
+     : MapType<Key,Tp,Compare>::value_type(other)
+    { }
+
+    BasicNode(BasicNode<Key,Tp,Compare>&& other)
+     : MapType<Key,Tp,Compare>::value_type(std::move(other))
+    { }
+
+    BasicNode<Key,Tp,Compare>&
+    operator= (const BasicNode<Key,Tp,Compare>& other)
     {
-        // Insert grandchild node into map of children
-        std::pair <typename MapType<Key,Tp,Compare>::iterator, bool> pr =
-            mParent_terator.second.mChildren.insert (grandchild_node);
-        typename MapType<Key,Tp,Compare>::iterator& grandchild_iter = pr.first;
-
-        // Identify pointer to (parent of new grand child)
-        TpEx<Key,Tp,Compare>& grandchild_valex = child_iter->second;
-        MapType<Key,Tp,Compare>& child_iter = grandchild_valex.mParentIterator;
-
-        // Establish link from new grand child to its parent
-        grandchild_iter->second.mParentIterator = child_iter;
-
-        return pr;
+        if (&other != this)
+        {
+            MapType<Key,Tp,Compare>::value_type::operator=(other);
+        }
+        return *this;
     }
+
+    BasicNode<Key,Tp,Compare>&
+    operator= (BasicNode<Key,Tp,Compare>&& other)
+    {
+        if (&other != this)
+        {
+            MapType<Key,Tp,Compare>::value_type::operator=(std::move(other));
+        }
+        return *this;
+    }
+
+    BasicNode(const typename MapType<Key,Tp,Compare>::value_type& raw_pair)
+     : MapType<Key,Tp,Compare>::value_type(raw_pair)
+    { }
+
+    BasicNode(typename MapType<Key,Tp,Compare>::value_type&& raw_pair)
+     : MapType<Key,Tp,Compare>::value_type(std::move(raw_pair))
+    { }
+
+    const Key& key() const { return this->first; }
+    TpEx<Key,Tp,Compare>& valex() { return this->second; }
 
     std::pair <typename MapType<Key,Tp,Compare>::iterator, bool>
     insert_child (const BasicNode<Key,Tp,Compare>& child_node)
     {
-        // Identify parent of self
-        auto& my_parent = *mParentIterator;
+        // Identify pointer to (parent of self)
+        TpEx<Key,Tp,Compare>& my_valex = valex();
+        typename MapType<Key,Tp,Compare>::iterator& my_parent_iterator =
+            my_valex.mParentIterator;
 
-        return my_parent.insert_grandchild (child_node);
+        // Identify (part of) parent of self
+        auto& vx = my_parent_iterator->second;
+
+        return insert_grandchild (vx, child_node);
     }
 
 };
@@ -80,19 +110,69 @@ public:
 template < typename Key,
            typename Tp,
            typename Compare = std::less<Key> >
-std::pair <typename MapType<Key,Tp,Compare>::iterator, bool>
-insert (
-          BasicNode<Key,Tp,Compare>& parent_node,
-    const BasicNode<Key,Tp,Compare>& new_node)
+class BasicTree
 {
-    auto pr = parent_node.second.mChildren.insert (new_node);
-    // pr.first->second.mParent = pr.second;
-    typename MapType<Key,Tp,Compare>::iterator& child_iter = pr.first;
-    TpEx<Key,Tp,Compare>& valex = child_iter->second;
-    MapType<Key,Tp,Compare>& mpar = valex.mParent;
+public:
 
-    auto& parent_iter = pr.second;
-    mpar = parent_iter;
+    BasicTree()
+    {
+        // The root node will have a null parent iterator 
+        // because it has no parent
+        BasicNode<Key,Tp,Compare> rootNode;
+        rootNode.valex().mParentIterator = mRootRootMap.end();
+
+        // The root node will be placed in a special map all by itself
+        mRootMap.insert (rootNode);
+    }
+
+    typename MapType<Key,Tp,Compare>::iterator top()
+    {
+        auto root_iter = mRootMap.begin();
+        return root_iter->second.mChildren.begin();
+    }
+
+    std::pair <typename MapType<Key,Tp,Compare>::iterator, bool>
+    insert_child (const BasicNode<Key,Tp,Compare>& child_node)
+    {
+        // The new node becomes a child of the root node
+        auto& rootNode = *(mRootMap.begin());
+        auto& children_of_root = rootNode.second.mChildren;
+        auto pr = children_of_root.insert (child_node);
+
+        // Parent iterator for new node will point to root node.
+        pr.first->second.mParentIterator = mRootMap.begin();
+
+        return pr;
+    }
+
+private:
+
+    MapType<Key,Tp,Compare> mRootMap;
+    MapType<Key,Tp,Compare> mRootRootMap;
+
+};
+
+template < typename Key,
+           typename Tp,
+           typename Compare = std::less<Key> >
+std::pair <typename MapType<Key,Tp,Compare>::iterator, bool>
+insert_grandchild (
+    TpEx<Key,Tp,Compare>& tpex,
+    const BasicNode<Key,Tp,Compare>& grandchild_node)
+{
+    // Insert grandchild node into map of children
+    std::pair <typename MapType<Key,Tp,Compare>::iterator, bool> pr =
+        tpex.mParentIterator->second.mChildren.insert (
+            grandchild_node);
+    typename MapType<Key,Tp,Compare>::iterator& grandchild_iter = pr.first;
+
+    // Identify pointer to (parent of new grand child)
+    TpEx<Key,Tp,Compare>& grandchild_valex = grandchild_iter->second;
+    typename MapType<Key,Tp,Compare>::iterator& child_iter =
+        grandchild_valex.mParentIterator;
+
+    // Establish link from new grand child to its parent
+    grandchild_iter->second.mParentIterator = child_iter;
 
     return pr;
 }
