@@ -13,29 +13,26 @@ struct Payload
 };
 
 typedef BasicNode<string, Payload> StringNode;
-typedef BasicTree<string, Payload> StringTree;
+typedef StringNode StringTree;
 
 int main (int, char* [])
 {
-    StringTree tree;
-
     Payload payload (1);
     StringNode a_Node(make_pair("a", payload));
-    tree.insert_child (a_Node);
 
     // Test
-    auto top_ptr = tree.top();
-    auto my_text = top_ptr->first;
-    auto my_val  = top_ptr->second.value;
+    auto& top_ptr = a_Node.user_access();
+    auto& my_text = top_ptr.first;
+    auto& my_val  = ++top_ptr.second.value;
+    cout << "Step 1: got " << my_text << " : " << my_val << endl;
 
-    auto back_ptr = top_ptr->second.mParentIterator;
-    auto root_node = *back_ptr;
-    auto root_text = root_node.first;
-    auto root_val = root_node.second.value;
-
-    payload = 2;
+    payload = 10;
     StringNode b_Node(make_pair("b", payload));
-    a_Node.insert_child (b_Node);
+    auto iter = a_Node.insert_child (b_Node).first;
+    auto& b_Ptr = *iter;
+    auto& b_User = b_Ptr.user_access();
+    cout << "Step 2: got " << b_User.first << " : " << b_User.second.value
+         << endl;
 
     return 0;
 }
