@@ -1,10 +1,45 @@
 #ifndef _AUTOTREE_BASIC_H_
 #define _AUTOTREE_BASIC_H_
 
-#include <map>
+#include <set>
+#include <utility>
 
 namespace AutoTree
 {
+template < typename Key,
+           typename Tp >
+using value_type = std::pair<const Key, Tp>;
+
+template < typename Key,
+           typename Tp,
+           typename Compare = std::less<Key> >
+class BasicNode
+{
+public:
+
+    value_type<Key,Tp>& user_access() const { return mUserData; }
+    struct BasicCompare {
+        constexpr bool operator() (
+	    const BasicNode<Key,Tp,Compare>& left,
+	    const BasicNode<Key,Tp,Compare>& right)
+	const
+	{
+	    return Compare(left.mUserData.first, right.mUserData.first);
+	}
+    };
+
+private:
+
+    BasicNode<Key,Tp,Compare> * & parent() const { return mParentNode; }
+    std::set<BasicNode, BasicCompare>& children() const { return mChildren; }
+
+    mutable value_type<Key,Tp> mUserData;
+    mutable BasicNode<Key,Tp,Compare>* mParentNode;
+    mutable std::set<BasicNode, BasicCompare> mChildren;
+
+}; // class BasicNode
+
+#if 0 // {
 
 template < typename Key,
            typename Tp,
@@ -63,6 +98,8 @@ insert_child (
 
     return pr;
 }
+
+#endif // } 0
 
 } // namespace AutoTree
 
