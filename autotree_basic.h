@@ -52,6 +52,11 @@ public:
 
     value_type& user_access() const { return mUserData; }
 
+    class iterator;
+    iterator start() const;
+    class iterator_beyond;
+    iterator_beyond beyond();
+
 private:
 
     BasicNode<Key,Tp,Compare> * & parent() const { return mParentNode; }
