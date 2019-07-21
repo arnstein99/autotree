@@ -2,6 +2,7 @@
 #define _AUTOTREE_BASIC_H_
 
 #include <set>
+#include <list>
 #include <utility>
 
 namespace AutoTree
@@ -55,7 +56,6 @@ public:
     class iterator;
     iterator start() const;
     class iterator_beyond;
-    iterator_beyond beyond();
 
 private:
 
@@ -65,8 +65,63 @@ private:
     mutable value_type mUserData;
     mutable BasicNode<Key,Tp,Compare>* mParentNode;
     mutable SetType mChildren;
+    mutable iterator_beyond mBeyond;
 
 }; // class BasicNode
+
+template < typename Key,
+           typename Tp,
+           typename Compare >
+class BasicNode<Key,Tp,Compare>::iterator
+{
+public:
+
+    bool operator== (const iterator& other) const {
+        return (*mStack[0] == *other.mStack[0]);
+    }
+    bool operator== (const iterator_beyond& ) const {
+        return (mStack[0] == nullptr);
+    }
+    iterator& operator++ () {
+        ++(*(mStack[0]));
+	return* this;
+    }
+    iterator& operator-- () {
+        --(*(mStack[0]));
+	return* this;
+    }
+    iterator& pop() {
+        mStack.pop();
+	return *this;
+    }
+    iterator& push() {
+        auto& my_children = mStack[0]->children();
+        auto set_iter =
+	    new typename BasicNode<Key,Tp,Compare>::SetType::iterator (
+	        my_children.begin());
+	mStack.push_front (set_iter);
+	return *this;
+    };
+
+private:
+
+    std::list< typename BasicNode<Key,Tp,Compare>::SetType::iterator* > mStack;
+
+}; // class BasicNode::iterator
+
+template < typename Key,
+           typename Tp,
+           typename Compare >
+class BasicNode<Key,Tp,Compare>::iterator_beyond
+{
+public:
+
+    bool operator== (
+        const typename BasicNode<Key,Tp,Compare>::iterator& other)
+    {
+        return (other.mStack[0] == nullptr);
+    }
+};
 
 } // namespace AutoTree
 
