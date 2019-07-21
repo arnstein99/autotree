@@ -53,10 +53,6 @@ public:
 
     value_type& user_access() const { return mUserData; }
 
-    class iterator;
-    iterator start() const;
-    class iterator_beyond;
-
 private:
 
     BasicNode<Key,Tp,Compare> * & parent() const { return mParentNode; }
@@ -65,14 +61,37 @@ private:
     mutable value_type mUserData;
     mutable BasicNode<Key,Tp,Compare>* mParentNode;
     mutable SetType mChildren;
-    mutable iterator_beyond mBeyond;
 
 }; // class BasicNode
 
 template < typename Key,
            typename Tp,
+           typename Compare = std::less<Key> >
+class BasicTree : public  BasicNode<Key,Tp,Compare>
+{
+public:
+
+    class iterator;
+    iterator start() const {
+        iterator retval;
+        auto set_iter =
+	    new typename BasicNode<Key,Tp,Compare>::SetType::iterator (
+	        this->mChildren.begin());
+	retval.mStack.push_front (set_iter);
+	return retval;
+    };
+    class iterator_beyond;
+
+private:
+
+    mutable iterator_beyond mBeyond;
+
+}; // class BasicTree
+
+template < typename Key,
+           typename Tp,
            typename Compare >
-class BasicNode<Key,Tp,Compare>::iterator
+class BasicTree<Key,Tp,Compare>::iterator
 {
 public:
 
@@ -112,7 +131,7 @@ private:
 template < typename Key,
            typename Tp,
            typename Compare >
-class BasicNode<Key,Tp,Compare>::iterator_beyond
+class BasicTree<Key,Tp,Compare>::iterator_beyond
 {
 public:
 
