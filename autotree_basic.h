@@ -42,12 +42,8 @@ public:
     std::pair<typename SetType::iterator, bool> insert_child (
 	BasicNode<Key,Tp,Compare>& child_node)
     {
-	// Set insert
 	auto pr = mChildren.insert (child_node);
-
-	// Back link
 	pr.first->mParentNode = this;
-
 	return pr;
     }
 
@@ -72,6 +68,8 @@ class BasicTree : public  BasicNode<Key,Tp,Compare>
 public:
 
     class iterator;
+    class iterator_beyond;
+
     iterator start() const {
         iterator retval;
         auto set_iter =
@@ -80,7 +78,16 @@ public:
 	retval.mStack.push_front (set_iter);
 	return retval;
     };
-    class iterator_beyond;
+
+    iterator erase (iterator& position) {
+        auto set_iter = position.mStack[0]->erase (position);
+	auto set_iter_ptr =
+	    new typename BasicNode<Key,Tp,Compare>::iterator (set_iter);
+	auto new_iter(*this);
+	new_iter.mStack.pop_front();
+	new_iter.mStack.push_front(set_iter_ptr);
+	return new_iter;
+    }
 
 private:
 
@@ -140,7 +147,8 @@ public:
     {
         return (other.mStack[0] == nullptr);
     }
-};
+
+}; // class BasicTree::iterator_beyond
 
 } // namespace AutoTree
 

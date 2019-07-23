@@ -2,8 +2,7 @@
 #define _AUTOTREE_H_
 
 #include <utility>
-#include <list>
-#include <map>
+#include "autotree_basic.h"
 
 namespace AutoTree
 {
@@ -21,7 +20,7 @@ template <typename Key,
           typename Parent,
           typename Compare = std::less<Key>,
           typename Equ = equal<Key> >
-class Node : public Tp
+class Node : public BasicNode<Key,Tp,Parent>
 {
 public:
 
@@ -34,15 +33,9 @@ public:
 
     Node (const Tp& tp);
 
-protected:
-
-    void insert (std::list<Key>& klist, const Tp& val);
-
 private:
 
-    Node* mParent;
-    using MapType = std::map<Key, Node<Key,Tp,Parent,Compare,Equ> >;
-    MapType mChildren;
+    void insert (std::list<Key>& klist, const Tp& val);
 
 }; // class Node
 
@@ -67,56 +60,14 @@ public:
     // TODO: provide useful return value
     void insert (const Key& key, const Tp& val);
 
-    // Note that this differs from the standard C++ library
-    typedef std::pair<const Key&, Tp&> value_type;
-
-    class iterator;
+    using value_type=std::pair<const Key&, Tp&>;
 
 private:
 
     bool expand (
         const Key& base_key, const Key& new_key, std::list<Key>& klist);
 
-    Key mBase;
-
 }; // class Tree
-
-template <typename Key,
-          typename Tp,
-          typename Parent,
-          typename Compare,
-          typename Equ>
-class Tree<Key,Tp,Parent,Compare,Equ>::iterator
-{
-public:
-
-    iterator();
-    iterator(iterator const& other);
-    iterator& operator=(iterator const& other);
-    iterator(iterator&& other);
-    iterator& operator=(iterator&& other);
-    ~iterator();
-
-    // These are in-place operations that return self.
-    iterator& go_start(const Tree<Key,Tp,Parent,Compare,Equ>& tree);
-    iterator& go_level_start();
-    iterator& go_prev();
-    iterator& go_next();
-    iterator& go_up();
-    iterator& go_down();
-
-    bool at_level_end() const;
-    bool at_vertical_end() const;
-
-    value_type operator->();
-
-private:
-
-    using MapType = std::map<Key, Node<Key,Tp,Parent,Compare,Equ> >;
-    std::list<iterator*>  mMapIterStack;
-    bool mBelowBottom;
-
-}; // class Tree::iterator
 
 } // namespace AutoTree
 

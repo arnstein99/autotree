@@ -15,8 +15,7 @@ template <typename Key,
           typename Equ>
 Node<Key,Tp,Parent,Compare,Equ>::Node (
     Node<Key,Tp,Parent,Compare,Equ>&& other)
- : Tp(std::move(other)), mParent(nullptr),
-   mChildren(std::move(other.mChildren))
+ : BasicNode<Key,Tp,Compare>(std::move(other))
 {
 }
 
@@ -30,9 +29,7 @@ Node<Key,Tp,Parent,Compare,Equ>& Node<Key,Tp,Parent,Compare,Equ>::operator= (
 {
     if (&other != this)
     {
-        Tp(std::move(other));
-	mParent = nullptr;
-	mChildren = std::move(other.mChildren);
+        BasicNode<Key,Tp,Compare>::operaor=(std::move(other))
     }
     return *this;
 }
@@ -43,7 +40,7 @@ template <typename Key,
           typename Compare,
           typename Equ>
 Node<Key,Tp,Parent,Compare,Equ>::Node(const Tp& val)
-: Tp(val), mParent(nullptr), mChildren()
+: BasicNode<Key,Tp,Compare>(std::make_pair(val,Tp{}))
 {
 }
 
@@ -65,13 +62,13 @@ void Node<Key,Tp,Parent,Compare,Equ>::insert (
 	Key child_key = klist.back();
 	klist.pop_back();
 
-	// Insert new member into map of children, or point to existing child
+	// Insert new member into set of children, or point to existing child
 	Node<Key,Tp,Parent,Compare,Equ> candidate (Tp{});
 	std::pair<Key, Node<Key,Tp,Parent,Compare,Equ> > pr;
 	pr.first = child_key;
 	pr.second = std::move(candidate);
-	auto iter = mChildren.insert (std::move(pr)).first; // map iterator
-	// Iterator may point to candidate, or to existing child in map.
+	auto iter = mChildren.insert (std::move(pr)).first; // set iterator
+	// Iterator may point to candidate, or to existing child in set.
 	iter->second.mParent = this;
 	iter->second.insert (klist, val);
     }
@@ -160,198 +157,6 @@ Tree<Key,Tp,Parent,Compare,Equ>::expand (
 	if (eq (keyCopy, base_key)) break;
     }
     return !(eq (keyCopy, Key{}));
-}
-
-////////////////////////////
-// Tree::iterator methods //
-////////////////////////////
-
-template <typename Key,
-          typename Tp,
-          typename Parent,
-          typename Compare,
-          typename Equ>
-Tree<Key,Tp,Parent,Compare,Equ>::iterator::iterator()
- : mMapIterStack(), mBelowBottom(false)
-{
-}
-
-template <typename Key,
-          typename Tp,
-          typename Parent,
-          typename Compare,
-          typename Equ>
-Tree<Key,Tp,Parent,Compare,Equ>::iterator::~iterator()
-{
-    auto iter = mMapIterStack.begin();
-    while (iter != mMapIterStack.end())
-    {
-        delete *iter;
-        mMapIterStack.pop_front();
-    }
-}
-
-template <typename Key,
-          typename Tp,
-          typename Parent,
-          typename Compare,
-          typename Equ>
-Tree<Key,Tp,Parent,Compare,Equ>::iterator::iterator(iterator&& other)
- : mMapIterStack(std::move(other.mMapIterStack)),
-   mBelowBottom(other.mBelowBottom)
-{
-}
-
-template <typename Key,
-          typename Tp,
-          typename Parent,
-          typename Compare,
-          typename Equ>
-Tree<Key,Tp,Parent,Compare,Equ>::iterator::iterator(const iterator& other)
- : mMapIterStack(), mBelowBottom(other.mBelowBottom)
-{
-    for (auto mit : other.mMapIterStack)
-    {
-        auto new_mit = new typename MapType::iterator (mit);
-        mMapIterStack.push_front (mit);
-    }
-}
-
-template <typename Key,
-          typename Tp,
-          typename Parent,
-          typename Compare,
-          typename Equ>
-typename Tree<Key,Tp,Parent,Compare,Equ>::iterator&
-Tree<Key,Tp,Parent,Compare,Equ>::iterator::operator= (
-    Tree<Key,Tp,Parent,Compare,Equ>::iterator&& other)
-{
-    if (&other != *this)
-    {
-        mMapIterStack = std::move(other.mMapIterStack);
-        mBelowBottom = other.mBelowBottom;
-    }
-    return *this;
-}
-
-template <typename Key,
-          typename Tp,
-          typename Parent,
-          typename Compare,
-          typename Equ>
-typename Tree<Key,Tp,Parent,Compare,Equ>::iterator&
-Tree<Key,Tp,Parent,Compare,Equ>::iterator::operator= (
-    const Tree<Key,Tp,Parent,Compare,Equ>::iterator& other)
-{
-    if (&other != *this)
-    {
-        mMapIterStack = MapType{};
-        for (auto mit : other.mMapIterStack)
-        {
-            auto new_mit = new typename MapType::iterator (mit);
-            mMapIterStack.push_front (mit);
-        }
-        mBelowBottom = other.mBelowBottom;
-    }
-    return *this;
-}
-
-template <typename Key,
-          typename Tp,
-          typename Parent,
-          typename Compare,
-          typename Equ>
-typename Tree<Key,Tp,Parent,Compare,Equ>::iterator&
-Tree<Key,Tp,Parent,Compare,Equ>::iterator::go_start (
-    const Tree<Key,Tp,Parent,Compare,Equ>& tree)
-{
-    auto miter = new typename MapType::iterator();
-    mMapIterStack.push_front(miter);
-    *miter = tree.Children.begin();
-    return *this;
-}
-
-template <typename Key,
-          typename Tp,
-          typename Parent,
-          typename Compare,
-          typename Equ>
-typename Tree<Key,Tp,Parent,Compare,Equ>::iterator&
-Tree<Key,Tp,Parent,Compare,Equ>::iterator::go_level_start ()
-{
-    if (mMapIterStack.empty)
-    {
-        // TODO: throw an exception
-    }
-    MapType& parent_map = (*mMapIterStack[0])->second;
-    *(mMapIterStack[0]) = parent_map.begin();
-    return *this;
-}
-
-template <typename Key,
-          typename Tp,
-          typename Parent,
-          typename Compare,
-          typename Equ>
-typename Tree<Key,Tp,Parent,Compare,Equ>::iterator&
-Tree<Key,Tp,Parent,Compare,Equ>::iterator::go_prev ()
-{
-    if (mMapIterStack.empty)
-    {
-        // TODO: throw an exception
-    }
-    --(*(mMapIterStack[0]));
-    return *this;
-}
-
-template <typename Key,
-          typename Tp,
-          typename Parent,
-          typename Compare,
-          typename Equ>
-typename Tree<Key,Tp,Parent,Compare,Equ>::iterator&
-Tree<Key,Tp,Parent,Compare,Equ>::iterator::go_next ()
-{
-    if (mMapIterStack.empty)
-    {
-        // TODO: throw an exception
-    }
-    ++(*(mMapIterStack[0]));
-    return *this;
-}
-
-template <typename Key,
-          typename Tp,
-          typename Parent,
-          typename Compare,
-          typename Equ>
-typename Tree<Key,Tp,Parent,Compare,Equ>::iterator&
-Tree<Key,Tp,Parent,Compare,Equ>::iterator::go_up ()
-{
-    if (mMapIterStack.empty)
-    {
-        // TODO: throw an exception
-    }
-    mMapIterStack.pop_front();
-    return *this;
-}
-
-template <typename Key,
-          typename Tp,
-          typename Parent,
-          typename Compare,
-          typename Equ>
-typename Tree<Key,Tp,Parent,Compare,Equ>::iterator&
-Tree<Key,Tp,Parent,Compare,Equ>::iterator::go_down ()
-{
-    if (mMapIterStack.empty)
-    {
-        // TODO: throw an exception
-    }
-    auto miter = new typename MapType::iterator();
-    *miter = this->begin();
-    mMapIterStack.push_front(miter);
-    return *this;
 }
 
 } // namespace AutoTree
