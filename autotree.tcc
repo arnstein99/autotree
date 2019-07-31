@@ -121,7 +121,10 @@ template <typename Key,
           typename Parent,
           typename Compare,
           typename Equ>
-void Tree<Key,Tp,Parent,Compare,Equ>::insert (const Key& key, const Tp& val)
+std::pair<iterator,bool> insert (const value_type& val)
+{
+    return insert (*this, val);
+}
 {
     // Construct list with new key at the beginning and
     // a direct child of self-key at the end...
@@ -132,6 +135,15 @@ void Tree<Key,Tp,Parent,Compare,Equ>::insert (const Key& key, const Tp& val)
     
     // Begin recursion
     Node<Key,Tp,Parent,Compare,Equ>::insert (klist, val);
+}
+
+template <typename Key,
+          typename Tp,
+          typename Parent,
+          typename Compare,
+          typename Equ>
+std::pair<iterator,bool> insert (Node& node, const value_type& val)
+{
 }
 
 template <typename Key,

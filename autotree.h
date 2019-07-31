@@ -57,13 +57,11 @@ public:
 
     Tree (const Key& base);
 
-    // TODO: provide useful return value
-    void insert (const Key& key, const Tp& val);
-
-    using value_type=std::pair<const Key&, Tp&>;
+    std::pair<iterator,bool> insert (const value_type& val);
 
 private:
 
+    std::pair<iterator,bool> insert (Node& node, const value_type& val);
     bool expand (
         const Key& base_key, const Key& new_key, std::list<Key>& klist);
 

@@ -38,6 +38,32 @@ public:
     BasicNode (const value_type& vt)
      : mUserData(vt), mParentNode(nullptr), mChildren()
     { }
+    BasicNode (const BasicNode& other)
+     : mUserData(other.mUserData), mParentNode(nullptr), mChildren()
+    { }
+    BasicNode (BasicNode&& other)
+     : mUserData(std::move(other.mUserData)), mParentNode(nullptr), mChildren()
+    { }
+    BasicNode& operator= (const BasicNode& other)
+    {
+        if (&other != this)
+	{
+	    mUserData = other.mUserdata;
+	    mParentNode = nullptr;
+	    mChildren.clear();
+	}
+	return *this;
+    }
+    BasicNode& operator= (BasicNode&& other)
+    {
+        if (&other != this)
+	{
+	    mUserData = std::move(other.mUserdata);
+	    mParentNode = nullptr;
+	    mChildren.clear();
+	}
+	return *this;
+    }
 
     std::pair<typename SetType::iterator, bool> insert_child (
 	BasicNode<Key,Tp,Compare>& child_node)
