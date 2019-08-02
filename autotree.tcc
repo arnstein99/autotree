@@ -29,7 +29,7 @@ Node<Key,Tp,Parent,Compare,Equ>& Node<Key,Tp,Parent,Compare,Equ>::operator= (
 {
     if (&other != this)
     {
-        BasicNode<Key,Tp,Compare>::operaor=(std::move(other))
+        BasicNode<Key,Tp,Compare>::operaor= (std::move(other));
     }
     return *this;
 }
@@ -67,7 +67,8 @@ void Node<Key,Tp,Parent,Compare,Equ>::insert (
 	std::pair<Key, Node<Key,Tp,Parent,Compare,Equ> > pr;
 	pr.first = child_key;
 	pr.second = std::move(candidate);
-	auto iter = mChildren.insert (std::move(pr)).first; // set iterator
+        // Set iterator
+	auto iter = this->mChildren.insert (std::move(pr)).first;
 	// Iterator may point to candidate, or to existing child in set.
 	iter->second.mParent = this;
 	iter->second.insert (klist, val);
@@ -85,8 +86,7 @@ template <typename Key,
           typename Equ>
 Tree<Key,Tp,Parent,Compare,Equ>::Tree (
     Tree<Key,Tp,Parent,Compare,Equ>&& other)
- : Node<Key,Tp,Parent,Compare,Equ> (std::move(other)),
-   mBase (std::move (other.mBase))
+ : Node<Key,Tp,Parent,Compare,Equ> (std::move(other))
 {
 }
 
@@ -100,7 +100,6 @@ Tree<Key,Tp,Parent,Compare,Equ>& Tree<Key,Tp,Parent,Compare,Equ>::operator= (
 {
     if (&other != this)
     {
-        mBase = std::move(other.mBase);
 	Node<Key,Tp,Parent,Compare,Equ>::operator= (std::move(other));
     }
     return *this;
@@ -111,39 +110,19 @@ template <typename Key,
           typename Parent,
           typename Compare,
           typename Equ>
-Tree<Key,Tp,Parent,Compare,Equ>::Tree(const Key& base)
-: Node<Key,Tp,Parent,Compare,Equ>(),  mBase(base)
-{
-}
-
-template <typename Key,
-          typename Tp,
-          typename Parent,
-          typename Compare,
-          typename Equ>
-std::pair<iterator,bool> insert (const value_type& val)
-{
-    return insert (*this, val);
-}
+std::pair< typename BasicTree<Key,Tp,Compare>::iterator, bool > 
+Tree<Key,Tp,Parent,Compare,Equ>::insert (
+    const value_type<Key,Tp>& val)
 {
     // Construct list with new key at the beginning and
     // a direct child of self-key at the end...
     std::list<Key> klist;
-    if (!expand (mBase, key, klist)) return;
+    if (!expand (this->user_access().first, val.first, klist)) return;
     // ...that if-test handles the case where the input key does not belong in
     // this tree.
     
     // Begin recursion
-    Node<Key,Tp,Parent,Compare,Equ>::insert (klist, val);
-}
-
-template <typename Key,
-          typename Tp,
-          typename Parent,
-          typename Compare,
-          typename Equ>
-std::pair<iterator,bool> insert (Node& node, const value_type& val)
-{
+    return Node<Key,Tp,Parent,Compare,Equ>::insert (klist, val);
 }
 
 template <typename Key,

@@ -37,9 +37,12 @@ typedef Tree<string, Payload, Parent> FileTree;
 int main (int, char* [])
 {
     FileTree ft ("/a");
-    ft.insert ("/a/b/c/d", {42});
-    ft.insert ("/a/b/xx", {43});
-    ft.insert ("/a/b/cc", {44});
+    auto pr1 = pair<string,Payload>("/a/b/c/d", {42});
+    ft.insert (pr1);
+    auto pr2 = pair<string,Payload>("/a/b/xx", {43});
+    ft.insert (pr2);
+    auto pr3 = pair<string,Payload>("/a/b/cc", {44});
+    ft.insert (pr3);
     return 0;
 }
 

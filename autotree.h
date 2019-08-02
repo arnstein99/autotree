@@ -57,11 +57,13 @@ public:
 
     Tree (const Key& base);
 
-    std::pair<iterator,bool> insert (const value_type& val);
+    std::pair< typename BasicTree<Key,Tp,Compare>::iterator, bool > insert (
+        const value_type<Key,Tp>& val);
 
 private:
 
-    std::pair<iterator,bool> insert (Node& node, const value_type& val);
+    std::pair< typename BasicTree<Key,Tp,Compare>::iterator, bool > insert (
+        Node<Key,Tp,Parent,Compare,Equ>& node, const value_type<Key,Tp>& val);
     bool expand (
         const Key& base_key, const Key& new_key, std::list<Key>& klist);
 
